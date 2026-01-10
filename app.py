@@ -21,20 +21,28 @@ CAREER_GUIDE_PROMPT = """
 You are "CareerGuide," an expert Tech Career Counselor.
 1. The user will ask about a specific **Job Role** (e.g., "DevOps Engineer").
 2. You must provide:
-   - 📋 **Job Description**: A concise summary of what they do.
-   - 🛠️ **Required Tech Stack**: The essential tools/languages to learn.
-   - 🗺️ **Learning Path**: A step-by-step guide (Beginner -> Advanced).
+    - 📋 **Job Description**: A concise summary of what they do.
+    - 🛠️ **Required Tech Stack**: The essential tools/languages to learn.
+    - 🗺️ **Learning Path**: A step-by-step guide (Beginner -> Advanced).
 3. Be structured, encouraging, and highly detailed.
 """
 
 # 1. Setup & Config
-load_dotenv()
+load_dotenv() # Still works for local development
 st.set_page_config(
     page_title="TalentScout AI", 
     page_icon="✨", 
     layout="wide", 
     initial_sidebar_state="expanded"
 )
+
+# --- API KEY LOGIC ---
+# This looks for 'GROQ_API_KEY' in Streamlit Cloud Secrets first, then falls back to .env
+api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+
+if not api_key:
+    st.error("Groq API Key missing. Please add it to your Streamlit Secrets or .env file.")
+    st.stop()
 
 # 2. THE GEMINI UI STYLING
 st.markdown("""
@@ -261,11 +269,7 @@ def get_sentiment(text):
     elif blob.sentiment.polarity < 0.0: return "Nervous 😟"
     return "Neutral 😐"
 
-api_key = os.getenv("GROQ_API_KEY")
-if not api_key:
-    st.error("API Key missing.")
-    st.stop()
-
+# Initialize LLM using the key defined in the API logic section
 llm = ChatGroq(temperature=0.5, model_name="llama-3.3-70b-versatile", groq_api_key=api_key)
 
 # Initialize Session States
