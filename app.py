@@ -21,14 +21,15 @@ CAREER_GUIDE_PROMPT = """
 You are "CareerGuide," an expert Tech Career Counselor.
 1. The user will ask about a specific **Job Role** (e.g., "DevOps Engineer").
 2. You must provide:
-    - 📋 **Job Description**: A concise summary of what they do.
-    - 🛠️ **Required Tech Stack**: The essential tools/languages to learn.
-    - 🗺️ **Learning Path**: A step-by-step guide (Beginner -> Advanced).
+   - 📋 **Job Description**: A concise summary of what they do.
+   - 🛠️ **Required Tech Stack**: The essential tools/languages to learn.
+   - 🗺️ **Learning Path**: A step-by-step guide (Beginner -> Advanced).
 3. Be structured, encouraging, and highly detailed.
 """
 
 # 1. Setup & Config
-load_dotenv() # Still works for local development
+load_dotenv() # <--- THIS LOADS YOUR LOCAL .ENV FILE
+
 st.set_page_config(
     page_title="TalentScout AI", 
     page_icon="✨", 
@@ -36,12 +37,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- API KEY LOGIC ---
-# This looks for 'GROQ_API_KEY' in Streamlit Cloud Secrets first, then falls back to .env
-api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+# --- API KEY LOGIC (WORKS LOCALLY AND ON CLOUD) ---
+# This robustly checks for the key in Streamlit Secrets (Cloud) first.
+# If it fails or doesn't exist, it falls back to os.getenv (Local .env).
+try:
+    api_key = st.secrets["GROQ_API_KEY"]
+except:
+    api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
-    st.error("Groq API Key missing. Please add it to your Streamlit Secrets or .env file.")
+    st.error("Groq API Key missing. Please check your .env file.")
     st.stop()
 
 # 2. THE GEMINI UI STYLING
@@ -234,25 +239,36 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Logic: Context-Aware Data Extraction
+# 3. Logic: Context-Aware Data Extraction (FIXED)
 def extract_info(user_text):
+    # Regex checks (Higher priority, independent of context)
     email_match = re.search(r'[\w\.-]+@[\w\.-]+', user_text)
     phone_match = re.search(r'\b\d{10}\b', user_text)
     
-    if email_match:
+    # Update Email only if it's currently pending
+    if email_match and st.session_state.candidate_data['Email'] == "Pending...":
         st.session_state.candidate_data['Email'] = email_match.group(0)
-    if phone_match:
+        
+    # Update Phone only if it's currently pending
+    if phone_match and st.session_state.candidate_data['Phone'] == "Pending...":
         st.session_state.candidate_data['Phone'] = phone_match.group(0)
     
+    # Context-based checks (Dependent on what the AI just asked)
     if len(st.session_state.messages) >= 1:
         last_msg = st.session_state.messages[-1]
         if isinstance(last_msg, AIMessage):
             last_ai_msg = last_msg.content.lower()
-            if "name" in last_ai_msg and len(user_text) < 50:
+            
+            # Update Name only if pending
+            if "name" in last_ai_msg and len(user_text) < 50 and st.session_state.candidate_data['Name'] == "Pending...":
                  st.session_state.candidate_data['Name'] = user_text.strip()
-            if any(x in last_ai_msg for x in ["role", "position", "job", "applying"]) and len(user_text) < 100:
+            
+            # Update Role only if pending
+            if any(x in last_ai_msg for x in ["role", "position", "job", "applying"]) and len(user_text) < 100 and st.session_state.candidate_data['Role'] == "Pending...":
                  st.session_state.candidate_data['Role'] = user_text.strip()
-            if any(x in last_ai_msg for x in ["stack", "technologies", "language", "tools"]) and len(user_text) < 150:
+            
+            # Update Stack only if pending
+            if any(x in last_ai_msg for x in ["stack", "technologies", "language", "tools"]) and len(user_text) < 150 and st.session_state.candidate_data['Stack'] == "Pending...":
                  st.session_state.candidate_data['Stack'] = user_text.strip()
 
 # --- UPGRADED SENTIMENT ENGINE ---
@@ -269,7 +285,7 @@ def get_sentiment(text):
     elif blob.sentiment.polarity < 0.0: return "Nervous 😟"
     return "Neutral 😐"
 
-# Initialize LLM using the key defined in the API logic section
+# Initialize LLM with the API key from Secrets/Env
 llm = ChatGroq(temperature=0.5, model_name="llama-3.3-70b-versatile", groq_api_key=api_key)
 
 # Initialize Session States
