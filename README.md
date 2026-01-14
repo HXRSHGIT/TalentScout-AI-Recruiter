@@ -1,6 +1,6 @@
 # 🚀 TalentScout: AI-Powered Hiring Assistant
 
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![Streamlit](https://img.shields.io/badge/Streamlit-1.35-red) ![LLM](https://img.shields.io/badge/AI-GPT--4o%20%7C%20Llama3-green) ![Status](https://img.shields.io/badge/Status-Completed-success)
+![Python](https://img.shields.io/badge/Python-3.12%2B-blue) ![Streamlit](https://img.shields.io/badge/Streamlit-1.35-red) ![LLM](https://img.shields.io/badge/AI-GPT--4o%20%7C%20Llama3-green) ![Status](https://img.shields.io/badge/Status-Completed-success)
 
 ## 📄 Overview
 **TalentScout** is an intelligent conversational agent designed to revolutionize the technical recruitment process. Unlike static forms, this AI-driven assistant engages candidates in a dynamic dialogue, parsing their technical stack in real-time and generating bespoke technical assessments on the fly. 
@@ -45,5 +45,5 @@ To elevate the platform beyond a basic screener, the following advanced modules 
 
 * **Frontend:** Built with **Streamlit** for a reactive, component-based UI.
 * **Orchestration:** Python-based backend handling API calls, session state, and logic routing.
-* **AI Engine:** Integration with **[Insert Model: e.g., OpenAI GPT-4 / Llama 3]** for NLU (Natural Language Understanding) and NLG (Natural Language Generation).
+* **AI Engine:** Integration with GROQ for NLU (Natural Language Understanding) and NLG (Natural Language Generation).
 * **Prompt Engineering:** Utilizes **Few-Shot Prompting** and **Chain-of-Thought (CoT)** reasoning to ensure the model
